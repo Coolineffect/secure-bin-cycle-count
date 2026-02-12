@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Bin Cycle Count - Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --success: #16a34a;
+            --warning: #ea580c;
+            --error: #dc2626;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border: #cbd5e1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .screens {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .screen {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 16px;
+            margin: 16px 0 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        input[type="file"],
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #c2410c;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .checkbox-item,
+        .radio-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .radio-item:hover,
+        .checkbox-item:hover {
+            border-color: var(--primary);
+        }
+
+        input[type="checkbox"]:checked ~ label,
+        input[type="radio"]:checked ~ label {
+            font-weight: 600;
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .card {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .card-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .data-field {
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .field-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .quantity-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .quantity-input label {
+            margin: 0;
+            min-width: 150px;
+        }
+
+        .quantity-input input {
+            width: 100px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-conflict {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .rail {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px 0;
+            margin-bottom: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .rail-item {
+            min-width: 100px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .rail-item:hover {
+            border-color: var(--primary);
+        }
+
+        .rail-item.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .table th {
+            background: var(--bg-secondary);
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table tr:hover {
+            background: var(--bg-primary);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #0c4a6e;
+            border-left: 4px solid var(--primary);
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--error);
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid var(--warning);
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .step.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: var(--success);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .step-separator {
+            width: 20px;
+            height: 2px;
+            background: var(--border);
+        }
+
+        .variance {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .variance.positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .variance.negative {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .variance.zero {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .hidden-owner-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .hidden-owner-panel.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .panel-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .panel-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .card-content {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printContent, #printContent * {
+                visibility: visible;
+            }
+            #printContent {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏭 Secure Bin Cycle Count</h1>
+            <p class="subtitle">Local-first, production-ready warehouse inventory management | Press Ctrl+D to access developer panel</p>
+        </header>
+
+        <div class="screens">
+            <!-- Screen 1: Import Excel -->
+            <div id="screen-import" class="screen active">
+                <div class="step-indicator">
+                    <div class="step active"><div class="step-number">1</div><div class="step-label">Import</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">2</div><div class="step-label">Location</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">3</div><div class="step-label">Bins</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">4</div><div class="step-label">Count</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">5</div><div class="step-label">Review</div></div>
+                </div>
+
+                <h2>Import Inventory Data</h2>
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">Upload your Excel file (.xlsx) with inventory data. Required columns: Location, Bin, PalletID, ItemNumber, SystemQuantity</p>
+
+                <div class="alert alert-info">
+                    <strong>Demo Mode:</strong> Click "Load Sample Data" to test the application with pre-filled warehouse inventory.
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Excel File (.xlsx)</label>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="loadSampleData()">📊 Load Sample Data</button>
+                    <button class="btn-primary" onclick="parseExcelFile()">📤 Upload & Parse</button>
+                </div>
+
+                <div id="importStatus" style="margin-top: 16px;"></div>
+            </div>
+
+            <!-- Screen 2: Select Location -->
+            <div id="screen-location" class="screen">
+                <div class="step-indicator">
+                    <div class="step completed"><div class="step-number">✓</div><div class="step-label">Import</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step active"><div class="step-number">2</div><div class="step-label">Location</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">3</div><div class="step-label">Bins</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">4</div><div class="step-label">Count</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">5</div><div class="step-label">Review</div></div>
+                </div>
+
+                <h2>Select Location</h2>
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">Choose the warehouse location for this cycle count session.</p>
+
+                <div id="locationList" class="grid"></div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goToScreen('import')">← Back</button>
+                    <button class="btn-primary" onclick="selectLocation()">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Screen 3: Select Bins -->
+            <div id="screen-bins" class="screen">
+                <div class="step-indicator">
+                    <div class="step completed"><div class="step-number">✓</div><div class="step-label">Import</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step completed"><div class="step-number">✓</div><div class="step-label">Location</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step active"><div class="step-number">3</div><div class="step-label">Bins</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">4</div><div class="step-label">Count</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">5</div><div class="step-label">Review</div></div>
+                </div>
+
+                <h2>Select Bins to Count</h2>
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">Choose bins for counting using multi-select.</p>
+
+                <div style="margin-bottom: 16px;">
+                    <button class="btn-secondary btn-sm" onclick="selectAllBins()">Select All</button>
+                    <button class="btn-secondary btn-sm" onclick="deselectAllBins()" style="margin-left: 8px;">Clear All</button>
+                </div>
+
+                <div id="binList" class="grid"></div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goToScreen('location')">← Back</button>
+                    <button class="btn-primary" onclick="selectBins()">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Screen 4: Counting View -->
+            <div id="screen-counting" class="screen">
+                <div class="step-indicator">
+                    <div class="step completed"><div class="step-number">✓</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step completed"><div class="step-number">✓</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step completed"><div class="step-number">✓</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step active"><div class="step-number">4</div><div class="step-label">Count</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step"><div class="step-number">5</div><div class="step-label">Review</div></div>
+                </div>
+
+                <h2>Bin-Based Cycle Count</h2>
+
+                <div id="mainCard" class="card" style="background: linear-gradient(135deg, #dbeafe, #e0f2fe);"></div>
+
+                <h3>Previous & Next Pallets (Rail)</h3>
+                <div id="palletRail" class="rail"></div>
+
+                <h3>Count Progress</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 16px;">
+                    <div class="data-field">
+                        <div class="field-label">Pending</div>
+                        <div class="field-value" id="pendingCount">0</div>
+                    </div>
+                    <div class="data-field">
+                        <div class="field-label">Completed</div>
+                        <div class="field-value" id="completedCount">0</div>
+                    </div>
+                    <div class="data-field">
+                        <div class="field-label">Conflicts</div>
+                        <div class="field-value" id="conflictCount">0</div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goToScreen('bins')">← Back</button>
+                    <button class="btn-success" onclick="goToScreen('review')">Review & Submit →</button>
+                </div>
+            </div>
+
+            <!-- Screen 5: Review & Submit -->
+            <div id="screen-review" class="screen">
+                <div class="step-indicator">
+                    <div class="step completed"><div class="step-number">✓</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step completed"><div class="step-number">✓</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step completed"><div class="step-number">✓</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step completed"><div class="step-number">✓</div></div>
+                    <div class="step-separator"></div>
+                    <div class="step active"><div class="step-number">5</div><div class="step-label">Review</div></div>
+                </div>
+
+                <h2>Review Count Results</h2>
+
+                <div id="reviewSummary"></div>
+
+                <h3>Variances & Conflicts</h3>
+                <div id="varianceTable"></div>
+
+                <h3>Session Information</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                    <div class="data-field">
+                        <div class="field-label">Session ID</div>
+                        <div class="field-value" id="sessionId" style="font-size: 12px;">-</div>
+                    </div>
+                    <div class="data-field">
+                        <div class="field-label">Start Time</div>
+                        <div class="field-value" id="sessionTime" style="font-size: 12px;">-</div>
+                    </div>
+                    <div class="data-field">
+                        <div class="field-label">Duration</div>
+                        <div class="field-value" id="sessionDuration" style="font-size: 12px;">-</div>
+                    </div>
+                    <div class="data-field">
+                        <div class="field-label">Audit Log Entries</div>
+                        <div class="field-value" id="auditCount" style="font-size: 12px;">0</div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goToScreen('counting')">← Back</button>
+                    <button class="btn-success" onclick="submitCount()">✓ Submit Count</button>
+                    <button class="btn-primary" onclick="downloadReport('pdf')">📄 PDF Report</button>
+                    <button class="btn-primary" onclick="downloadReport('excel')">📊 Excel Report</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="hidden-owner-panel" id="ownerPanel">
+            <button class="panel-close" onclick="toggleOwnerPanel()">✕</button>
+            <div class="panel-content">
+                <h2>🔧 Developer & Audit Panel</h2>
+                <h3>Audit Log (Recent 30 entries)</h3>
+                <div id="auditLog" style="background: #f1f5f9; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; max-height: 300px; overflow-y: auto; margin-bottom: 16px; border: 1px solid var(--border);"></div>
+                <h3>Local Storage</h3>
+                <button class="btn-secondary" onclick="exportAuditLog()">📥 Export Audit Log (CSV)</button>
+                <button class="btn-secondary" onclick="exportFullData()" style="margin-left: 8px;">💾 Export All Data (JSON)</button>
+                <button class="btn-warning" onclick="clearAllData()" style="margin-left: 8px;">🗑️ Clear All Data</button>
+                <h3>Statistics</h3>
+                <div id="statsPanel" style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; font-size: 12px; margin-top: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="printContent" style="display: none;"></div>
+
+    <script>
+        // ===== DATA STRUCTURES =====
+        let currentSession = null;
+        let inventoryData = [];
+        let selectedLocation = null;
+        let selectedBins = [];
+        let currentPalletIndex = 0;
+        let auditLog = [];
+        let countedPallets = {};
+        let flaggedConflicts = [];
+
+        // ===== SAMPLE DATA GENERATION =====
+        function loadSampleData() {
+            const locations = ['Area-A', 'Area-B', 'Area-C', 'Area-D'];
+            const bins = ['A-1', 'A-2', 'A-3', 'B-1', 'B-2', 'B-3', 'C-1', 'C-2', 'D-1'];
+            const items = [
+                { sku: 'SKU-1001', desc: 'Widget A', uom: 'Unit' },
+                { sku: 'SKU-1002', desc: 'Widget B', uom: 'Unit' },
+                { sku: 'SKU-2001', desc: 'Gadget X', uom: 'Box' },
+                { sku: 'SKU-2002', desc: 'Gadget Y', uom: 'Carton' },
+                { sku: 'SKU-3001', desc: 'Component C', uom: 'Unit' },
+                { sku: 'SKU-3002', desc: 'Component D', uom: 'Unit' },
+            ];
+
+            const sampleData = [];
+            let palletCount = 1;
+
+            for (let loc of locations) {
+                for (let bin of bins.slice(0, 3)) {
+                    for (let i = 0; i < 2; i++) {
+                        const item = items[Math.floor(Math.random() * items.length)];
+                        sampleData.push({
+                            Location: loc,
+                            Bin: bin,
+                            PalletID: 'PAL-' + String(palletCount).padStart(4, '0'),
+                            ItemNumber: item.sku,
+                            SystemQuantity: Math.floor(Math.random() * 200) + 20,
+                            Description: item.desc,
+                            UOM: item.uom,
+                            ExpiryDate: new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            Status: 'Active'
+                        });
+                        palletCount++;
+                    }
+                }
+            }
+
+            inventoryData = sampleData;
+            logAudit('SYSTEM', 'Sample data loaded', { record_count: sampleData.length });
+            showStatus('✓ Sample data loaded (' + sampleData.length + ' pallets)', 'success', 'screen-import');
+            setTimeout(() => goToScreen('location'), 500);
+        }
+
+        // ===== EXCEL PARSING =====
+        function parseExcelFile() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) {
+                showStatus('❌ Please select an Excel file', 'error', 'screen-import');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    if (jsonData.length === 0) {
+                        showStatus('❌ Excel file is empty', 'error', 'screen-import');
+                        return;
+                    }
+
+                    // Validation
+                    const requiredCols = ['Location', 'Bin', 'PalletID', 'ItemNumber', 'SystemQuantity'];
+                    const headers = Object.keys(jsonData[0] || {});
+                    const missing = requiredCols.filter(col => !headers.includes(col));
+
+                    if (missing.length > 0) {
+                        showStatus('❌ Missing required columns: ' + missing.join(', '), 'error', 'screen-import');
+                        logAudit('ERROR', 'Excel validation failed', { missing_columns: missing });
+                        return;
+                    }
+
+                    // Deduplicate
+                    const seen = new Set();
+                    const deduplicated = jsonData.filter(row => {
+                        const key = row.PalletID + '|' + row.Bin;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
+
+                    inventoryData = deduplicated;
+                    logAudit('SYSTEM', 'Excel file imported', { file_name: file.name, original_rows: jsonData.length, deduplicated_rows: deduplicated.length });
+                    showStatus('✓ Excel parsed successfully (' + deduplicated.length + ' pallets, ' + (jsonData.length - deduplicated.length) + ' duplicates removed)', 'success', 'screen-import');
+                    setTimeout(() => goToScreen('location'), 500);
+                } catch (err) {
+                    showStatus('❌ Error parsing Excel: ' + err.message, 'error', 'screen-import');
+                    logAudit('ERROR', 'Excel parsing failed', { error: err.message });
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ===== LOCATION SELECTION =====
+        function selectLocation() {
+            const selected = document.querySelector('input[name="location"]:checked');
+            if (!selected) {
+                showStatus('❌ Please select a location', 'error', 'screen-location');
+                return;
+            }
+            selectedLocation = selected.value;
+            logAudit('USER', 'Location selected', { location: selectedLocation });
+            goToScreen('bins');
+        }
+
+        // ===== SCREEN NAVIGATION =====
+        function goToScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + screenName).classList.add('active');
+
+            if (screenName === 'location') populateLocations();
+            if (screenName === 'bins') populateBins();
+            if (screenName === 'counting') {
+                initializeCountingView();
+                updateCountingProgress();
+            }
+            if (screenName === 'review') populateReview();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function populateLocations() {
+            const locations = [...new Set(inventoryData.map(item => item.Location))].sort();
+            const locationList = document.getElementById('locationList');
+            locationList.innerHTML = locations.map(loc => `
+                <div class="radio-item">
+                    <input type="radio" name="location" value="${loc}" id="loc-${loc}" />
+                    <label for="loc-${loc}">${loc}</label>
+                </div>
+            `).join('');
+        }
+
+        function populateBins() {
+            if (!selectedLocation) return;
+            const bins = [...new Set(inventoryData.filter(item => item.Location === selectedLocation).map(item => item.Bin))].sort();
+            const binList = document.getElementById('binList');
+            binList.innerHTML = bins.map(bin => `
+                <div class="checkbox-item">
+                    <input type="checkbox" name="bin" value="${bin}" id="bin-${bin}" />
+                    <label for="bin-${bin}">${bin}</label>
+                </div>
+            `).join('');
+        }
+
+        function selectAllBins() {
+            document.querySelectorAll('input[name="bin"]').forEach(cb => cb.checked = true);
+        }
+
+        function deselectAllBins() {
+            document.querySelectorAll('input[name="bin"]').forEach(cb => cb.checked = false);
+        }
+
+        function selectBins() {
+            const selected = Array.from(document.querySelectorAll('input[name="bin"]:checked')).map(el => el.value);
+            if (selected.length === 0) {
+                showStatus('❌ Please select at least one bin', 'error', 'screen-bins');
+                return;
+            }
+            selectedBins = selected;
+            logAudit('USER', 'Bins selected', { bins: selectedBins, count: selectedBins.length });
+            currentSession = {
+                id: 'SES-' + Date.now(),
+                timestamp: new Date().toISOString(),
+                location: selectedLocation,
+                bins: selectedBins,
+                startTime: Date.now(),
+                userId: 'OPERATOR-001'
+            };
+            countedPallets = {};
+            flaggedConflicts = [];
+            goToScreen('counting');
+        }
+
+        // ===== COUNTING VIEW =====
+        function initializeCountingView() {
+            currentPalletIndex = 0;
+            displayCurrentPallet();
+        }
+
+        function displayCurrentPallet() {
+            const pallets = inventoryData.filter(item => selectedLocation === item.Location && selectedBins.includes(item.Bin));
+            if (currentPalletIndex >= pallets.length) {
+                showStatus('✓ All pallets counted!', 'success', 'screen-counting');
+                return;
+            }
+
+            const pallet = pallets[currentPalletIndex];
+            const mainCard = document.getElementById('mainCard');
+            const countedQuantity = countedPallets[pallet.PalletID];
+            const isCompleted = countedQuantity !== undefined;
+            const variance = isCompleted ? countedQuantity - pallet.SystemQuantity : 0;
+            const varianceClass = variance > 0 ? 'positive' : variance < 0 ? 'negative' : 'zero';
+            const statusClass = isCompleted ? (variance === 0 ? 'completed' : 'conflict') : 'pending';
+
+            mainCard.innerHTML = `
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">${pallet.PalletID}</div>
+                        <div class="card-subtitle">${pallet.Bin} • ${pallet.ItemNumber}</div>
+                    </div>
+                    <div class="status-badge status-${statusClass}">${isCompleted ? (variance === 0 ? 'Completed' : 'Conflict') : 'Pending'}</div>
+                </div>
+                <div class="card-content">
+                    <div class="data-field"><div class="field-label">Item Number</div><div class="field-value">${pallet.ItemNumber}</div></div>
+                    <div class="data-field"><div class="field-label">Description</div><div class="field-value">${pallet.Description || '-'}</div></div>
+                    <div class="data-field"><div class="field-label">System Qty</div><div class="field-value">${pallet.SystemQuantity}</div></div>
+                    <div class="data-field"><div class="field-label">UOM</div><div class="field-value">${pallet.UOM || 'Unit'}</div></div>
+                    <div class="data-field"><div class="field-label">Expiry Date</div><div class="field-value">${pallet.ExpiryDate || '-'}</div></div>
+                    <div class="data-field"><div class="field-label">Status</div><div class="field-value">${pallet.Status || 'Active'}</div></div>
+                </div>
+                <div class="quantity-input">
+                    <label for="countedQty">Counted Quantity:</label>
+                    <input type="number" id="countedQty" value="${countedQuantity || pallet.SystemQuantity}" min="0" />
+                </div>
+                ${isCompleted && variance !== 0 ? `
+                    <div style="margin-top: 12px; padding: 12px; background: rgba(255, 255, 255, 0.7); border-radius: 6px;">
+                        <div class="field-label">Variance: <span class="variance ${varianceClass}">${variance > 0 ? '+' : ''}${variance}</span></div>
+                    </div>
+                ` : ''}
+                <div class="button-group" style="margin-top: 16px;">
+                    <button class="btn-success" onclick="confirmPallet()">✓ Confirm & Next</button>
+                    <button class="btn-warning" onclick="flagConflict()">⚠️ Flag Conflict</button>
+                </div>
+            `;
+
+            updatePalletRail(pallets);
+        }
+
+        function updatePalletRail(pallets) {
+            const rail = document.getElementById('palletRail');
+            rail.innerHTML = pallets.map((p, idx) => {
+                const isCompleted = countedPallets[p.PalletID] !== undefined;
+                const countedQty = countedPallets[p.PalletID];
+                const variance = isCompleted ? countedQty - p.SystemQuantity : null;
+                const className = idx === currentPalletIndex ? 'active' : '';
+                const varDisplay = isCompleted ? (variance === 0 ? '✓' : (variance > 0 ? '+' + variance : variance)) : '';
+                
+                return `
+                    <div class="rail-item ${className}" onclick="currentPalletIndex = ${idx}; displayCurrentPallet()" title="${p.PalletID}">
+                        <div>${p.PalletID.split('-')[1]}</div>
+                        <div style="font-size: 10px; opacity: 0.7;">${varDisplay}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function confirmPallet() {
+            const pallets = inventoryData.filter(item => selectedLocation === item.Location && selectedBins.includes(item.Bin));
+            const pallet = pallets[currentPalletIndex];
+            const countedQty = parseInt(document.getElementById('countedQty').value);
+
+            if (isNaN(countedQty) || countedQty < 0) {
+                showStatus('❌ Please enter a valid quantity', 'error', 'screen-counting');
+                return;
+            }
+
+            countedPallets[pallet.PalletID] = countedQty;
+            const variance = countedQty - pallet.SystemQuantity;
+
+            logAudit('USER', 'Pallet counted', { 
+                pallet_id: pallet.PalletID,
+                bin: pallet.Bin,
+                system_qty: pallet.SystemQuantity,
+                counted_qty: countedQty,
+                variance: variance
+            });
+
+            currentPalletIndex++;
+            if (currentPalletIndex >= pallets.length) {
+                showStatus('✓ All pallets counted successfully!', 'success', 'screen-counting');
+                setTimeout(() => goToScreen('review'), 500);
+            } else {
+                displayCurrentPallet();
+                updateCountingProgress();
+            }
+        }
+
+        function flagConflict() {
+            const pallets = inventoryData.filter(item => selectedLocation === item.Location && selectedBins.includes(item.Bin));
+            const pallet = pallets[currentPalletIndex];
+            const countedQty = parseInt(document.getElementById('countedQty').value);
+
+            flaggedConflicts.push({
+                pallet_id: pallet.PalletID,
+                timestamp: new Date().toISOString(),
+                system_qty: pallet.SystemQuantity,
+                counted_qty: countedQty
+            });
+
+            logAudit('USER', 'Conflict flagged', { 
+                pallet_id: pallet.PalletID,
+                reason: 'Manual conflict flag',
+                system_qty: pallet.SystemQuantity,
+                counted_qty: countedQty
+            });
+
+            showStatus('⚠️ Conflict flagged for review', 'warning', 'screen-counting');
+            setTimeout(() => confirmPallet(), 500);
+        }
+
+        function updateCountingProgress() {
+            const pallets = inventoryData.filter(item => selectedLocation === item.Location && selectedBins.includes(item.Bin));
+            const completed = Object.keys(countedPallets).length;
+            const pending = pallets.length - completed;
+            const conflicts = flaggedConflicts.length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('conflictCount').textContent = conflicts;
+        }
+
+        // ===== REVIEW & SUBMIT =====
+        function populateReview() {
+            const pallets = inventoryData.filter(item => selectedLocation === item.Location && selectedBins.includes(item.Bin));
+            
+            let summary = '<div class="alert alert-success">✓ Count session completed successfully</div>';
+            summary += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px;">';
+            summary += '<div class="data-field"><div class="field-label">Pallets Counted</div><div class="field-value">' + Object.keys(countedPallets).length + ' / ' + pallets.length + '</div></div>';
+            summary += '<div class="data-field"><div class="field-label">Location</div><div class="field-value">' + selectedLocation + '</div></div>';
+            summary += '<div class="data-field"><div class="field-label">Bins</div><div class="field-value">' + selectedBins.length + '</div></div>';
+            summary += '<div class="data-field"><div class="field-label">Variance Count</div><div class="field-value">' + pallets.filter(p => countedPallets[p.PalletID] !== p.SystemQuantity).length + '</div></div>';
+            summary += '</div>';
+            document.getElementById('reviewSummary').innerHTML = summary;
+
+            // Variance table
+            let varTable = '<table class="table"><thead><tr><th>Pallet ID</th><th>Item</th><th>System</th><th>Counted</th><th>Variance</th><th>Status</th></tr></thead><tbody>';
+            pallets.forEach(pallet => {
+                const counted = countedPallets[pallet.PalletID] || 0;
+                const variance = counted - pallet.SystemQuantity;
+                const varClass = variance > 0 ? 'positive' : variance < 0 ? 'negative' : 'zero';
+                const isFlagged = flaggedConflicts.some(c => c.pallet_id === pallet.PalletID);
+                varTable += `<tr>
+                    <td><strong>${pallet.PalletID}</strong></td>
+                    <td>${pallet.ItemNumber}</td>
+                    <td>${pallet.SystemQuantity}</td>
+                    <td>${counted}</td>
+                    <td><span class="variance ${varClass}">${variance > 0 ? '+' : ''}${variance}</span></td>
+                    <td>${isFlagged ? '<span class="status-badge status-conflict">Flagged</span>' : (variance === 0 ? '<span class="status-badge status-completed">OK</span>' : '<span class="status-badge status-conflict">Variance</span>')}</td>
+                </tr>`;
+            });
+            varTable += '</tbody></table>';
+            document.getElementById('varianceTable').innerHTML = varTable;
+
+            // Session info
+            const duration = Math.floor((Date.now() - currentSession.startTime) / 1000);
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+
+            document.getElementById('sessionId').textContent = currentSession.id;
+            document.getElementById('sessionTime').textContent = new Date(currentSession.timestamp).toLocaleString();
+            document.getElementById('sessionDuration').textContent = minutes + 'm ' + seconds + 's';
+            document.getElementById('auditCount').textContent = auditLog.length;
+        }
+
+        function submitCount() {
+            const pallets = inventoryData.filter(item => selectedLocation === item.Location && selectedBins.includes(item.Bin));
+            const varianceCount = pallets.filter(p => countedPallets[p.PalletID] !== p.SystemQuantity).length;
+
+            logAudit('SYSTEM', 'Count session submitted', { 
+                session_id: currentSession.id,
+                pallets_counted: Object.keys(countedPallets).length,
+                variance_count: varianceCount,
+                flagged_conflicts: flaggedConflicts.length
+            });
+
+            showStatus('✓ Count session submitted and saved locally', 'success', 'screen-review');
+            setTimeout(() => {
+                alert('✓ Count session complete!\n\nSession ID: ' + currentSession.id + '\nPallets Counted: ' + Object.keys(countedPallets).length + '\nVariances: ' + varianceCount + '\nAudit Entries: ' + auditLog.length);
+                location.reload();
+            }, 1000);
+        }
+
+        // ===== REPORT GENERATION =====
+        function downloadReport(format) {
+            const pallets = inventoryData.filter(item => selectedLocation === item.Location && selectedBins.includes(item.Bin));
+            
+            if (format === 'pdf') {
+                generatePDFReport(pallets);
+            } else if (format === 'excel') {
+                generateExcelReport(pallets);
+            }
+        }
+
+        function generatePDFReport(pallets) {
+            let html = `
+                <div style="font-family: Arial; padding: 20px;">
+                    <h1>Cycle Count Report</h1>
+                    <p><strong>Session ID:</strong> ${currentSession.id}</p>
+                    <p><strong>Location:</strong> ${selectedLocation}</p>
+                    <p><strong>Bins:</strong> ${selectedBins.join(', ')}</p>
+                    <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>Duration:</strong> ${Math.floor((Date.now() - currentSession.startTime) / 1000)} seconds</p>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background: #e2e8f0;">
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Pallet</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Item</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">System Qty</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Counted Qty</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Variance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            pallets.forEach(pallet => {
+                const counted = countedPallets[pallet.PalletID] || 0;
+                const variance = counted - pallet.SystemQuantity;
+                html += `
+                    <tr>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;">${pallet.PalletID}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;">${pallet.ItemNumber}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;">${pallet.SystemQuantity}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;">${counted}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; color: ${variance > 0 ? '#166534' : variance < 0 ? '#991b1b' : '#000'};">${variance > 0 ? '+' : ''}${variance}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const element = document.createElement('div');
+            element.innerHTML = html;
+            const opt = {
+                margin: 10,
+                filename: 'cycle-count-report-' + currentSession.id + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+            html2pdf().set(opt).from(element).save();
+            logAudit('USER', 'PDF report generated', { session_id: currentSession.id });
+        }
+
+        function generateExcelReport(pallets) {
+            const data = [
+                ['Cycle Count Report'],
+                ['Session ID:', currentSession.id],
+                ['Location:', selectedLocation],
+                ['Bins:', selectedBins.join(', ')],
+                ['Generated:', new Date().toLocaleString()],
+                [],
+                ['Pallet ID', 'Item Number', 'System Qty', 'Counted Qty', 'Variance', 'Status']
+            ];
+
+            pallets.forEach(pallet => {
+                const counted = countedPallets[pallet.PalletID] || 0;
+                const variance = counted - pallet.SystemQuantity;
+                const status = variance === 0 ? 'OK' : (variance > 0 ? 'Over' : 'Under');
+                data.push([pallet.PalletID, pallet.ItemNumber, pallet.SystemQuantity, counted, variance, status]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Cycle Count');
+            XLSX.writeFile(wb, 'cycle-count-report-' + currentSession.id + '.xlsx');
+            logAudit('USER', 'Excel report generated', { session_id: currentSession.id });
+        }
+
+        // ===== AUDIT LOGGING =====
+        function logAudit(user, action, details) {
+            const entry = {
+                timestamp: new Date().toISOString(),
+                user,
+                action,
+                details,
+                sessionId: currentSession?.id || 'N/A'
+            };
+            auditLog.push(entry);
+            updateAuditPanel();
+        }
+
+        function updateAuditPanel() {
+            const panel = document.getElementById('auditLog');
+            panel.innerHTML = auditLog.slice(-30).reverse().map(entry => `
+                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #cbd5e1;">
+                    <strong>${entry.timestamp.split('T')[1].split('.')[0]}</strong> | <strong>${entry.user}</strong> | ${entry.action}
+                    ${entry.details ? '<br/><small style="opacity: 0.7; word-break: break-all;">' + JSON.stringify(entry.details).substring(0, 120) + '...</small>' : ''}
+                </div>
+            `).join('');
+
+            updateStatsPanel();
+        }
+
+        function updateStatsPanel() {
+            const stats = {
+                totalEntries: auditLog.length,
+                userActions: auditLog.filter(e => e.user === 'USER').length,
+                systemActions: auditLog.filter(e => e.user === 'SYSTEM').length,
+                errors: auditLog.filter(e => e.user === 'ERROR').length,
+                lastAction: auditLog.length > 0 ? auditLog[auditLog.length - 1].timestamp : 'N/A'
+            };
+
+            document.getElementById('statsPanel').innerHTML = `
+                <div><strong>Total Entries:</strong> ${stats.totalEntries}</div>
+                <div><strong>User Actions:</strong> ${stats.userActions}</div>
+                <div><strong>System Actions:</strong> ${stats.systemActions}</div>
+                <div><strong>Errors:</strong> ${stats.errors}</div>
+                <div><strong>Last Entry:</strong> ${typeof stats.lastAction === 'string' ? stats.lastAction.split('T')[1].split('.')[0] : 'N/A'}</div>
+            `;
+        }
+
+        function exportAuditLog() {
+            const csv = 'Timestamp,User,Action,Details,Session ID\n' + auditLog.map(e => `"${e.timestamp}","${e.user}","${e.action}","${JSON.stringify(e.details || {})}","${e.sessionId}"`).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'audit-log-' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+            logAudit('USER', 'Audit log exported', { format: 'CSV', entries: auditLog.length });
+        }
+
+        function exportFullData() {
+            const data = {
+                exportDate: new Date().toISOString(),
+                inventoryData: inventoryData,
+                sessions: [currentSession],
+                auditLog: auditLog,
+                countedPallets: countedPallets,
+                flaggedConflicts: flaggedConflicts
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'full-data-export-' + Date.now() + '.json';
+            link.click();
+            logAudit('USER', 'Full data export', { format: 'JSON' });
+        }
+
+        function toggleOwnerPanel() {
+            document.getElementById('ownerPanel').classList.toggle('visible');
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Clear all session data? This cannot be undone. Consider exporting first.')) {
+                inventoryData = [];
+                auditLog = [];
+                countedPallets = {};
+                flaggedConflicts = [];
+                currentSession = null;
+                selectedBins = [];
+                selectedLocation = null;
+                logAudit('SYSTEM', 'All data cleared');
+                setTimeout(() => location.reload(), 500);
+            }
+        }
+
+        // ===== UTILITIES =====
+        function showStatus(message, type, screenId = 'screen-import') {
+            const screen = document.getElementById(screenId);
+            let statusDiv = screen.querySelector('.status-message');
+            
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.className = 'status-message';
+                screen.appendChild(statusDiv);
+            }
+            
+            statusDiv.className = 'status-message alert alert-' + type;
+            statusDiv.textContent = message;
+            statusDiv.style.marginTop = '16px';
+        }
+
+        // Easter egg: Press Ctrl+D to toggle owner panel
+        document.addEventListener('keydown', e => {
+            if (e.key === 'd' && e.ctrlKey) {
+                e.preventDefault();
+                toggleOwnerPanel();
+            }
+        });
+
+        // Initialize
+        logAudit('SYSTEM', 'Application initialized', { version: '1.0.0' });
+    </script>
+</body>
+</html>
